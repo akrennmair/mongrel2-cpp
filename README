@@ -6,6 +6,9 @@ This is work in progress.
 Mongrel2: http://mongrel2.org/
 Mongrel2 Python Library: http://sheddingbikes.com/posts/1279007133.html
 
+In ubuntu you need to:  apt-get install libjson0-dev
+To be able to compile
+
 LICENSE
 =======
 Same as Mongrel2.

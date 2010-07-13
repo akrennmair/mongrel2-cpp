@@ -2,6 +2,7 @@
 #include <vector>
 #include <sstream>
 #include <json/json.h>
+#include <stdio.h>
 #include "m2pp.hpp"
 #include "m2pp_internal.hpp"
 

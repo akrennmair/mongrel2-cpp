@@ -5,6 +5,7 @@
 #include <vector>
 #include <utility>
 #include <zmq.hpp>
+#include <stdint.h>
 
 namespace m2pp {
 
