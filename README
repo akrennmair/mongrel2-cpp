@@ -1,0 +1,11 @@
+mongrel2-cpp - a library to develop Mongrel2 handlers in C++
+============================================================
+
+This is work in progress.
+
+Mongrel2: http://mongrel2.org/
+Mongrel2 Python Library: http://sheddingbikes.com/posts/1279007133.html
+
+LICENSE
+=======
+Same as Mongrel2.
