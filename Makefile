@@ -6,14 +6,21 @@ LIBS=-lzmq -ljson -lm2pp
 AR=ar
 RANLIB=ranlib
 
-TARGET=m2pp-test
 LIBRARY=libm2pp.a
+
+TEST=m2pp-test
+CGI=m2pp-cgi
+
 LIBOBJS=$(patsubst %.cpp,%.o,$(wildcard lib/*.cpp))
+CGIOBJS=$(patsubst %.cpp,%.o,$(wildcard cgi/*.cpp))
 
-all: $(LIBRARY) $(TARGET)
+all: $(LIBRARY) $(TEST) $(CGI)
 
-$(TARGET): $(TARGET).o $(LIBRARY)
-	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) $(TARGET).o $(LIBS)
+$(TEST): $(TEST).o $(LIBRARY)
+	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) $(TEST).o $(LIBS)
+
+$(CGI): $(CGIOBJS) $(LIBRARY)
+	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) $(CGIOBJS) $(LIBS)
 
 $(LIBRARY): $(LIBOBJS)
 	$(RM) $@
@@ -24,6 +31,6 @@ $(LIBRARY): $(LIBOBJS)
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 clean:
-	$(RM) $(TARGET) $(LIBOBJS) $(LIBRARY) $(TARGET).o
+	$(RM) $(LIBOBJS) $(LIBRARY) $(TEST) $(TEST).o $(CGI) $(CGIOBJS)
 
 .PHONY: clean
