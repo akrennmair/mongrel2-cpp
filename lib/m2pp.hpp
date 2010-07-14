@@ -27,6 +27,7 @@ class connection {
 		request recv();
 		void reply_http(const request& req, const std::string& response, uint16_t code = 200, const std::string& status = "OK", std::vector<header> hdrs = std::vector<header>());
 	private:
+		zmq::context_t ctx;
 		std::string sender_id;
 		std::string sub_addr;
 		std::string pub_addr;

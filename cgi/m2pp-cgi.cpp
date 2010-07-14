@@ -22,7 +22,7 @@ static void sigchld_handler(int sig) {
 }
 
 static void usage(const char * argv0) {
-	std::cout << argv0 << ": usage: " << argv0 << " -i <sender_id> -p <pub_addr> -s <sub_addr>" << std::endl;
+	std::cout << argv0 << ": usage: " << argv0 << " -i <sender_id> -p <pub_addr> -s <sub_addr> -d <basedir>" << std::endl;
 	::exit(1);
 }
 
@@ -30,10 +30,12 @@ int main(int argc, char * argv[]) {
 	std::string sender_id;
 	std::string pub_addr;
 	std::string sub_addr;
+	std::string cgidir;
+
 	int c;
 
 	do {
-		if ((c = ::getopt(argc, argv, "i:p:s:h")) < 0)
+		if ((c = ::getopt(argc, argv, "i:p:s:d:h")) < 0)
 			continue;
 
 		switch (c) {
@@ -51,6 +53,9 @@ int main(int argc, char * argv[]) {
 			case 's':
 				sub_addr = optarg;
 				break;
+			case 'd':
+				cgidir = optarg;
+				break;
 			default:
 				std::cout << argv[0] << ": unknown option -" << static_cast<char>(c) << std::endl;
 				usage(argv[0]);
@@ -59,7 +64,7 @@ int main(int argc, char * argv[]) {
 
 	} while (c != -1);
 
-	if (pub_addr == "" || sub_addr == "" || sender_id == "") {
+	if (pub_addr == "" || sub_addr == "" || sender_id == "" || cgidir == "") {
 		usage(argv[0]);
 	}
 
@@ -70,10 +75,12 @@ int main(int argc, char * argv[]) {
 	while (1) {
 		m2pp::request req = conn.recv();
 
+		handle_request(conn, req, cgidir);
+#if 0
 		int rc = fork();
 		switch (rc) {
 			case 0:
-				handle_request(conn, req);
+				handle_request(conn, req, cgidir);
 				::exit(0);
 				break;
 			case -1:
@@ -82,6 +89,7 @@ int main(int argc, char * argv[]) {
 			default:
 				break;
 		}
+#endif
 	}
 
 	return 0;
