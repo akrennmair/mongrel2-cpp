@@ -2,7 +2,6 @@
 #include <vector>
 #include <sstream>
 #include <json/json.h>
-#include <stdio.h>
 #include "m2pp.hpp"
 #include "m2pp_internal.hpp"
 
@@ -45,8 +44,6 @@ std::vector<header> parse_json(const std::string& jsondoc) {
 	std::vector<header> hdrs;
 
 	json_object * jobj = json_tokener_parse(jsondoc.c_str());
-
-	printf("jobj = %p jsondoc = %s\n", jobj, jsondoc.c_str());
 
 	if (jobj && json_object_is_type(jobj, json_type_object)) {
 		json_object_object_foreach(jobj, key, value) {
