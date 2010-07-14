@@ -53,6 +53,8 @@ std::vector<header> parse_json(const std::string& jsondoc) {
 		}
 	}
 
+	json_object_put(jobj); // free json object
+
 	return hdrs;
 }
 
