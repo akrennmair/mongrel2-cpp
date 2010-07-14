@@ -1,0 +1,4 @@
+*.o
+*.a
+m2pp-cgi
+m2pp-test
