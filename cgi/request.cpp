@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <poll.h>
 #include <fcntl.h>
+#include <sys/select.h>
 
 // implementation according to RFC 3875.
 
@@ -169,11 +170,10 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 
 	int fd_stdin[2];
 	int fd_stdout[2];
-	//int fd_stderr[2];
+	int fd_stderr[2];
 	pipe(fd_stdin);
 	pipe(fd_stdout);
-	//pipe(fd_stderr);
-	int devnull = open("/dev/null", O_WRONLY);
+	pipe(fd_stderr);
 	unsigned int cgienvsize = env.size();
 	char ** cgienv;
 
@@ -187,10 +187,10 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 			}
 			close(fd_stdin[1]);
 			close(fd_stdout[0]);
-			//close(fd_stderr[0]);
+			close(fd_stderr[0]);
 			dup2(fd_stdin[0], 0);
 			dup2(fd_stdout[1], 1);
-			dup2(devnull, 2);
+			dup2(fd_stderr[1], 2);
 			// TODO: set timeout using alarm(2) to limit execution time of CGI script.
 			execle(fullpath.c_str(), fullpath.c_str(), NULL, cgienv);
 			std::cerr << "error: exec(" << fullpath << ") failed: " << ::strerror(errno) << std::endl;
@@ -202,7 +202,7 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 		default:
 			close(fd_stdin[0]);
 			close(fd_stdout[1]);
-			//close(fd_stderr[1]);
+			close(fd_stderr[1]);
 			break;
 	}
 
@@ -225,55 +225,36 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 	}
 
 	std::string coll_stdout;
-
-#if 0
 	std::string coll_stderr;
+
+	char buf[40960];
 	int stdout_eof = 0;
 	int stderr_eof = 0;
 
-	struct pollfd pollfds[2] = {
-		{ fd_stdout[0], POLLIN, 0 },
-		{ fd_stderr[0], POLLIN, 0 }
-	};
-#endif
-
-	char buf[40960];
-
-	int size = read(fd_stdout[0], buf, sizeof(buf));
-	while (size > 0) {
-		coll_stdout.append(buf, size);
-		size = read(fd_stdout[0], buf, sizeof(buf));
-	}
-
-#if 0
-
 	do {
+		fd_set readset;
+		FD_ZERO(&readset);
 
-		printf("before poll\n");
+		FD_SET(fd_stdout[0], &readset);
+		FD_SET(fd_stderr[0], &readset);
 
-		int rc = poll(pollfds, 2, -1);
+		int rc = select(std::max(fd_stdout[0], fd_stderr[0]) + 1, &readset, NULL, NULL, NULL);
 
-		printf("after poll: rc = %d\n", rc);
-
-		if (rc >= 0) {
-			printf("stdout.revents = %x POLLIN = %x\n", pollfds[0].revents, POLLIN);
-			if (pollfds[0].revents & POLLIN) {
+		if (rc > 0) {
+			if (FD_ISSET(fd_stdout[0], &readset)) {
 				int size = read(fd_stdout[0], buf, sizeof(buf));
-				printf("after read for stdout: size = %d\n", size);
-				if (size <= 0) {
-					stdout_eof = 1;
-				} else {
+				if (size > 0) {
 					coll_stdout.append(buf, size);
+				} else {
+					stdout_eof = 1;
 				}
 			}
-			printf("stderr.revents = %x POLLIN = %x\n", pollfds[1].revents, POLLIN);
-			if (pollfds[1].revents & POLLIN) {
-				int size = read(fd_stdout[0], buf, sizeof(buf));
-				printf("after read for stderr: size = %d\n", size);
-				if (size <= 0) {
-					stderr_eof = 1;
-				} else {
+			if (FD_ISSET(fd_stderr[0], &readset)) {
+				int size = read(fd_stderr[0], buf, sizeof(buf));
+				if (size > 0) {
 					coll_stderr.append(buf, size);
+				} else {
+					stderr_eof = 1;
 				}
 			}
 		}
@@ -283,8 +264,6 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 	if (coll_stderr.length() > 0) {
 		std::cerr << "Error " << fullpath << " pid=" << cgipid << ": " << coll_stderr << std::endl;
 	}
-
-#endif
 
 	std::vector<m2pp::header> resphdrs;
 
