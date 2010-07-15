@@ -27,7 +27,7 @@ static int normalize(int c) {
 	if ('-' == c) {
 		return '_';
 	}
-	return c;
+	return std::toupper(c);
 }
 
 static void chomp(std::string& str) {
@@ -162,7 +162,6 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 	for (std::vector<m2pp::header>::iterator it=req.headers.begin();it!=req.headers.end();it++) {
 		if (it->first != "PATH" && it->first != "METHOD" && it->first != "VERSION" && it->first != "URI" && it->first != "QUERY") {
 			std::string variable_name = "HTTP_" + it->first;
-			std::transform(variable_name.begin(), variable_name.end(), variable_name.begin(), static_cast<int (*)(int)>(std::toupper));
 			std::transform(variable_name.begin(), variable_name.end(), variable_name.begin(), normalize);
 			env.push_back(variable_name + "=" + it->second);
 		}
