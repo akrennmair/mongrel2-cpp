@@ -32,8 +32,13 @@ static int normalize(int c) {
 }
 
 static void chomp(std::string& str) {
-	std::string::size_type pos = str.find_last_not_of("\r\n");
-	if (pos != std::string::npos) {
+	std::string::size_type pos = str.length()-1;
+	while (pos > 0 && (str[pos] == '\n' || str[pos] == '\r'))
+		pos--;
+
+	if (pos == 0) {
+		str = "";
+	} else {
 		str = str.substr(0, pos+1);
 	}
 }
@@ -52,6 +57,8 @@ static m2pp::header parse_header(const std::string& str) {
 		result.first = str;
 	}
 
+	logmsg(DEBUG, "parsed header: %s: %s", result.first.c_str(), result.second.c_str());
+
 	return result;
 }
 
@@ -59,6 +66,8 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 	std::string fullpath = cgidir + req.path;
 
 	std::vector<std::string> env;
+
+	logmsg(DEBUG, "Handling request: sender = %s conn_id = %s path = %s", req.sender.c_str(), req.conn_id.c_str(), req.path.c_str());
 
 #if 0
 	// TODO: fix this mess.
@@ -78,6 +87,7 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 	::snprintf(scriptdir, sizeof(scriptdir), "%s", fullpath.c_str());
 	::dirname(scriptdir);
 	::chdir(scriptdir);
+	logmsg(DEBUG, "chdir to %s", scriptdir);
 
 	// 4.1 Request Meta-Variables
 	// 7.2 "Meta-variables are passed to the script in identically named environment variables."
@@ -168,6 +178,8 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 		}
 	}
 
+	logmsg(DEBUG, "done preparing environment");
+
 	int fd_stdin[2];
 	int fd_stdout[2];
 	int fd_stderr[2];
@@ -193,10 +205,10 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 			dup2(fd_stderr[1], 2);
 			// TODO: set timeout using alarm(2) to limit execution time of CGI script.
 			execle(fullpath.c_str(), fullpath.c_str(), NULL, cgienv);
-			std::cerr << "error: exec(" << fullpath << ") failed: " << ::strerror(errno) << std::endl;
+			logmsg(ERROR, "execle(%s) failed: %s", fullpath.c_str(), ::strerror(errno));
 			break;
 		case -1:
-			std::cerr << "fork failed: " << ::strerror(errno) << std::endl;
+			logmsg(ERROR, "fork failed: %s", ::strerror(errno));
 			conn.reply_http(req, "Internal Server Error", 500, "Internal Server Error");
 			return;
 		default:
@@ -207,6 +219,7 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 	}
 
 	if (req.body.length() > 0) {
+		logmsg(DEBUG, "req.body = %s", req.body.c_str());
 		size_t size = req.body.size();
 		size_t offs = 0;
 		int rc;
@@ -217,7 +230,7 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 			offs += rc;
 		}
 		if (rc < 0) {
-			std::cerr << "sending body to CGI script failed: " << ::strerror(errno) << std::endl;
+			logmsg(ERROR, "sending body to CGI script failed: %s", ::strerror(errno));
 			conn.reply_http(req, "Internal Server Error", 500, "Internal Server Error");
 			::kill(cgipid, SIGTERM);
 			return;
@@ -261,6 +274,8 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 
 	} while (stdout_eof == 0 || stderr_eof == 0);
 
+	logmsg(DEBUG, "done with reading from stdout and stderr");
+
 	if (coll_stderr.length() > 0) {
 		std::cerr << "Error " << fullpath << " pid=" << cgipid << ": " << coll_stderr << std::endl;
 	}
@@ -288,5 +303,9 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 		final_output.append(buf, script_output.gcount());
 	}
 
+	logmsg(DEBUG, "before reply_http");
+
 	conn.reply_http(req, final_output, 200, "OK", resphdrs);
+
+	logmsg(DEBUG, "after reply_http");
 }

@@ -36,7 +36,7 @@ std::string parse_netstring(const std::string& str, std::string& rest) {
 	std::istringstream is(result[0]);
 	unsigned int len;
 	is >> len;
-	rest = result[1].substr(len, result[1].length() - len);
+	rest = result[1].substr(len+1, result[1].length() - len);
 	return result[1].substr(0, len);
 }
 
