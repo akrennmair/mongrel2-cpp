@@ -67,20 +67,7 @@ void handle_request(m2pp::connection& conn, m2pp::request& req, const std::strin
 
 	std::vector<std::string> env;
 
-	logmsg(DEBUG, "Handling request: sender = %s conn_id = %s path = %s", req.sender.c_str(), req.conn_id.c_str(), req.path.c_str());
-
-#if 0
-	// TODO: fix this mess.
-	// make sure that full script path is within the specified CGI directory.
-	char * resolved_path = ::realpath(fullpath.c_str(), NULL);
-	if (!resolved_path || cgidir.length() > strlen(resolved_path) || cgidir.substr(0, strlen(resolved_path)) != resolved_path) {
-		printf("resolved_path = %s cgidir = %s fullpath = %s\n", resolved_path, cgidir.c_str(), fullpath.c_str());
-		conn.reply_http(req, "Forbidden", 403, "Forbidden");
-		return;
-	}
-
-	fullpath = resolved_path;
-#endif
+	logmsg(DEBUG, "Handling request: sender = %s conn_id = %s path = %s pid = %d", req.sender.c_str(), req.conn_id.c_str(), req.path.c_str(), ::getpid());
 
 	// 7.2 "The current working directory for the script SHOULD be set to the directory containing the script."
 	char scriptdir[PATH_MAX+1];
