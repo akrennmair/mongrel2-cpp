@@ -3,10 +3,17 @@ CXXFLAGS=-ggdb -Wall -Wextra -Ilib
 LDFLAGS=-L/usr/local/lib -L.
 LIBS=-lzmq -ljson -lm2pp
 
+prefix=/usr/local
+incdir=$(prefix)/include
+libdir=$(prefix)/lib
+
 AR=ar
 RANLIB=ranlib
+INSTALL=install -m 644
+MKDIR=mkdir -p
 
 LIBRARY=libm2pp.a
+HEADER=lib/m2pp.hpp
 
 TEST=m2pp-test
 CGI=m2pp-cgi
@@ -33,4 +40,10 @@ $(LIBRARY): $(LIBOBJS)
 clean:
 	$(RM) $(LIBOBJS) $(LIBRARY) $(TEST) $(TEST).o $(CGI) $(CGIOBJS)
 
-.PHONY: clean
+install:
+	$(MKDIR) $(DESTDIR)$(libdir)
+	$(INSTALL) $(LIBRARY) $(DESTDIR)$(libdir)
+	$(MKDIR) $(DESTDIR)$(incdir)
+	$(INSTALL) $(HEADER) $(DESTDIR)$(incdir)
+
+.PHONY: clean install
