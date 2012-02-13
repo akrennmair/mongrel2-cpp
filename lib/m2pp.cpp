@@ -27,12 +27,12 @@ void connection::reply_http(const request& req, const std::string& response, uin
 
 	httpresp << "HTTP/1.1" << " " << code << " " << status << "\r\n";
 	httpresp << "Content-Length: " << response.length() << "\r\n";
-	for (std::vector<header>::iterator it=hdrs.begin();it!=hdrs.end();it++) {
+	for (std::vector<header>::iterator it=hdrs.begin();it!=hdrs.end();++it) {
 		httpresp << it->first << ": " << it->second << "\r\n";
 	}
 	httpresp << "\r\n" << response;
 
-	// Using the new mongrel2 format as of v1.3 
+	// Using the new mongrel2 format as of v1.3
 	std::ostringstream msg;
 	msg << req.sender << " " << req.conn_id.size() << ":" << req.conn_id << ", " << httpresp.str();
 	std::string msg_str = msg.str();
@@ -57,6 +57,17 @@ request request::parse(zmq::message_t& msg) {
 	req.headers = utils::parse_json(utils::parse_netstring(results[3], body));
 
 	req.body = utils::parse_netstring(body, ign);
+
+	//check disconnect flag
+	req.disconnect = false;
+	for (std::vector<header>::const_iterator it = req.headers.begin();
+			it != req.headers.end(); ++it) {
+		if (it->first == "METHOD" && it->second == "JSON" &&
+				req.body == "{\"type\":\"disconnect\"}") {
+			req.disconnect = true;
+			break;
+		}
+	}
 
 	return req;
 }

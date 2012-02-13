@@ -8,10 +8,15 @@
 int main(void) {
 	std::string sender_id = "82209006-86FF-4982-B5EA-D1E29E55D481";
 
-	m2pp::connection conn(sender_id, "tcp://127.0.0.1:9999", "tcp://127.0.0.1:9998");
+	m2pp::connection conn(sender_id, "tcp://127.0.0.1:8988", "tcp://127.0.0.1:8989");
 
 	while (1) {
 		m2pp::request req = conn.recv();
+
+		if (req.disconnect) {
+			std::cout << "== disconnect ==" << std::endl;
+			continue;
+		}
 
 		std::ostringstream response;
 		response << "<pre>" << std::endl;
