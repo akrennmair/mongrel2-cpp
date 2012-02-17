@@ -17,6 +17,7 @@ struct request {
 	std::string path;
 	std::vector<header> headers;
 	std::string body;
+	bool disconnect;
 	static request parse(zmq::message_t& msg);
 };
 
