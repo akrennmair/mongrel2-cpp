@@ -45,6 +45,10 @@ void connection::reply(const request& req, const std::string& response) {
 	resp.send(outmsg);
 }
 
+void connection::reply_websocket(const request& req, const std::string& response, char opcode, char rsvd) {
+    reply(req, utils::websocket_header(response.size(), opcode, rsvd) + response);
+}
+
 request request::parse(zmq::message_t& msg) {
 	request req;
 	std::string result(static_cast<const char *>(msg.data()), msg.size());

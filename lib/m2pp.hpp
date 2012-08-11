@@ -28,6 +28,7 @@ class connection {
 		request recv();
 		void reply(const request& req, const std::string& response);
 		void reply_http(const request& req, const std::string& response, uint16_t code = 200, const std::string& status = "OK", std::vector<header> hdrs = std::vector<header>());
+        void reply_websocket(const request& req, const std::string& response, char opcode=1, char rsvd=0);
 	private:
 		zmq::context_t ctx;
 		std::string sender_id;
