@@ -32,9 +32,13 @@ void connection::reply_http(const request& req, const std::string& response, uin
 	}
 	httpresp << "\r\n" << response;
 
+    reply(req, httpresp.str());
+}
+
+void connection::reply(const request& req, const std::string& response) {
 	// Using the new mongrel2 format as of v1.3
 	std::ostringstream msg;
-	msg << req.sender << " " << req.conn_id.size() << ":" << req.conn_id << ", " << httpresp.str();
+	msg << req.sender << " " << req.conn_id.size() << ":" << req.conn_id << ", " << response;
 	std::string msg_str = msg.str();
 	zmq::message_t outmsg(msg_str.length());
 	::memcpy(outmsg.data(), msg_str.data(), msg_str.length());
