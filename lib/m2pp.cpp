@@ -1,6 +1,7 @@
 #include <string>
 #include <sstream>
 #include <zmq.hpp>
+#include <assert.h>
 #include "m2pp.hpp"
 #include "m2pp_internal.hpp"
 
@@ -32,13 +33,48 @@ void connection::reply_http(const request& req, const std::string& response, uin
 	}
 	httpresp << "\r\n" << response;
 
+    reply(req, httpresp.str());
+}
+
+void connection::reply(const request& req, const std::string& response) {
 	// Using the new mongrel2 format as of v1.3
 	std::ostringstream msg;
-	msg << req.sender << " " << req.conn_id.size() << ":" << req.conn_id << ", " << httpresp.str();
+	msg << req.sender << " " << req.conn_id.size() << ":" << req.conn_id << ", " << response;
 	std::string msg_str = msg.str();
 	zmq::message_t outmsg(msg_str.length());
 	::memcpy(outmsg.data(), msg_str.data(), msg_str.length());
 	resp.send(outmsg);
+}
+
+void connection::reply_websocket(const request& req, const std::string& response, char opcode, char rsvd) {
+    reply(req, utils::websocket_header(response.size(), opcode, rsvd) + response);
+}
+
+void connection::deliver(const std::string& uuid, const std::vector<std::string>& idents, const std::string& data) {
+    assert(idents.size() <= MAX_IDENTS);
+	std::ostringstream msg;
+    msg << uuid << " ";
+
+    size_t idents_size(idents.size()-1); // initialize with size needed for spaces
+    for (size_t i=0; i<idents.size(); i++) {
+        idents_size += idents[i].size();
+    }
+	msg << idents_size << ":";
+    for (size_t i=0; i<idents.size(); i++) {
+        msg << idents[i];
+        if (i < idents.size()-1)
+            msg << " ";
+    }
+    msg << ", " << data;
+
+	std::string msg_str = msg.str();
+	zmq::message_t outmsg(msg_str.length());
+	::memcpy(outmsg.data(), msg_str.data(), msg_str.length());
+	resp.send(outmsg);
+}
+
+void connection::deliver_websocket(const std::string& uuid, const std::vector<std::string>& idents, const std::string& data, char opcode, char rsvd) {
+    deliver(uuid, idents, utils::websocket_header(data.size(), opcode, rsvd) + data);
 }
 
 request request::parse(zmq::message_t& msg) {
