@@ -33,7 +33,7 @@ void connection::reply_http(const request& req, const std::string& response, uin
 	}
 	httpresp << "\r\n" << response;
 
-    reply(req, httpresp.str());
+	reply(req, httpresp.str());
 }
 
 void connection::reply(const request& req, const std::string& response) {
@@ -51,21 +51,21 @@ void connection::reply_websocket(const request& req, const std::string& response
 }
 
 void connection::deliver(const std::string& uuid, const std::vector<std::string>& idents, const std::string& data) {
-    assert(idents.size() <= MAX_IDENTS);
+	assert(idents.size() <= MAX_IDENTS);
 	std::ostringstream msg;
-    msg << uuid << " ";
+	msg << uuid << " ";
 
-    size_t idents_size(idents.size()-1); // initialize with size needed for spaces
-    for (size_t i=0; i<idents.size(); i++) {
-        idents_size += idents[i].size();
-    }
+	size_t idents_size(idents.size()-1); // initialize with size needed for spaces
+	for (size_t i=0; i<idents.size(); i++) {
+		idents_size += idents[i].size();
+	}
 	msg << idents_size << ":";
-    for (size_t i=0; i<idents.size(); i++) {
-        msg << idents[i];
-        if (i < idents.size()-1)
-            msg << " ";
-    }
-    msg << ", " << data;
+	for (size_t i=0; i<idents.size(); i++) {
+		msg << idents[i];
+		if (i < idents.size()-1)
+			msg << " ";
+	}
+	msg << ", " << data;
 
 	std::string msg_str = msg.str();
 	zmq::message_t outmsg(msg_str.length());
@@ -74,7 +74,7 @@ void connection::deliver(const std::string& uuid, const std::vector<std::string>
 }
 
 void connection::deliver_websocket(const std::string& uuid, const std::vector<std::string>& idents, const std::string& data, char opcode, char rsvd) {
-    deliver(uuid, idents, utils::websocket_header(data.size(), opcode, rsvd) + data);
+	deliver(uuid, idents, utils::websocket_header(data.size(), opcode, rsvd) + data);
 }
 
 request request::parse(zmq::message_t& msg) {

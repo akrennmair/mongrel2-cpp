@@ -59,30 +59,30 @@ std::vector<header> parse_json(const std::string& jsondoc) {
 }
 
 std::string websocket_header(size_t data_size, char opcode, char rsvd) {
-    std::ostringstream header;
-    header.put(0x80|opcode|rsvd<<4);
-    char dummyLength;
-    size_t realLength=data_size;
-    if (realLength < 126) {
-        dummyLength = static_cast<char>(realLength);
-    } else if (realLength < 1<<16) {
-        dummyLength = 126;
+	std::ostringstream header;
+	header.put(0x80|opcode|rsvd<<4);
+	char dummyLength;
+	size_t realLength=data_size;
+	if (realLength < 126) {
+		dummyLength = static_cast<char>(realLength);
+	} else if (realLength < 1<<16) {
+		dummyLength = 126;
     } else {
-        dummyLength = 127;
-    }
-    header.put(dummyLength);
-    if (dummyLength == 127) {
-        header.put(realLength >> 56 &0xff);
-        header.put(realLength >> 48 &0xff);
-        header.put(realLength >> 40 &0xff);
-        header.put(realLength >> 32 &0xff);
-        header.put(realLength >> 24 & 0xff);
-        header.put(realLength >> 16 & 0xff);
-    } if (dummyLength == 126 || dummyLength == 127) {
-        header.put(realLength >> 8 & 0xff);
-        header.put(realLength & 0xff);
-    }
-    return header.str();
+		dummyLength = 127;
+	}
+	header.put(dummyLength);
+	if (dummyLength == 127) {
+		header.put(realLength >> 56 &0xff);
+		header.put(realLength >> 48 &0xff);
+		header.put(realLength >> 40 &0xff);
+		header.put(realLength >> 32 &0xff);
+		header.put(realLength >> 24 & 0xff);
+		header.put(realLength >> 16 & 0xff);
+	} if (dummyLength == 126 || dummyLength == 127) {
+		header.put(realLength >> 8 & 0xff);
+		header.put(realLength & 0xff);
+	}
+	return header.str();
 }
 
 }
