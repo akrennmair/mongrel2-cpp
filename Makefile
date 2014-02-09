@@ -3,6 +3,7 @@ CXXFLAGS=-ggdb -Wall -Wextra -Ilib
 LDFLAGS=-L/usr/local/lib -L.
 LIBS=-lm2pp -lzmq -ljson-c
 
+prefix=/usr/local
 incdir=$(prefix)/include
 libdir=$(prefix)/lib
 
