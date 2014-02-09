@@ -1,3 +1,6 @@
+This fork is an updated, working, cross-platform version of mongrel2-cpp library.
+
+
 mongrel2-cpp - a library to develop Mongrel2 handlers in C++
 ============================================================
 
