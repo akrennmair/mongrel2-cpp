@@ -8,7 +8,7 @@
 namespace m2pp {
 
 connection::connection(const std::string& sender_id_, const std::string& sub_addr_, const std::string& pub_addr_) 
-	: ctx(1), sender_id(sender_id_), sub_addr(sub_addr_), pub_addr(pub_addr_), reqs(ctx, ZMQ_UPSTREAM), resp(ctx, ZMQ_PUB) {
+	: ctx(1), sender_id(sender_id_), sub_addr(sub_addr_), pub_addr(pub_addr_), reqs(ctx, ZMQ_PULL), resp(ctx, ZMQ_PUB) {
 	reqs.connect(sub_addr.c_str());
 	resp.connect(pub_addr.c_str());
 	resp.setsockopt(ZMQ_IDENTITY, sender_id.data(), sender_id.length());
