@@ -1,3 +1,4 @@
+#include <poll.h>
 #include <string>
 #include <sstream>
 #include <zmq.hpp>
@@ -15,6 +16,36 @@ connection::connection(const std::string& sender_id_, const std::string& sub_add
 }
 
 connection::~connection() {
+}
+
+int connection::poll(struct pollfd *pollfds, size_t pollfdsNum) {
+	zmq_pollitem_t pollitems[pollfdsNum + 1 /* reqs socket */];
+	memset(pollitems, 0, sizeof(pollitems));
+
+	for(size_t i = 0; i < pollfdsNum; ++i) {
+		pollitems[i].fd = pollfds[i].fd;
+		pollitems[i].events = pollfds[i].events;
+	}
+
+	// append reqs socket
+	pollitems[pollfdsNum].socket = reqs;
+	pollitems[pollfdsNum].events = POLLIN;
+
+	int rc = zmq::poll(pollitems, sizeof(pollitems) / sizeof(pollitems[0]));
+	if(rc <= 0) {
+		return rc;
+	}
+
+	// prefer zmq messages
+	if(pollitems[pollfdsNum].revents)
+		return INT_MAX;
+
+	// TODO could stop after rc non-zero revents have been seen
+	for(size_t i = 0; i < pollfdsNum; ++i) {
+		pollfds[i].revents = pollitems[i].revents;
+	}
+
+	return rc;
 }
 
 request connection::recv() {

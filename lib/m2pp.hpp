@@ -5,7 +5,10 @@
 #include <vector>
 #include <utility>
 #include <zmq.hpp>
+#include <climits>
 #include <stdint.h>
+
+struct pollfd;
 
 namespace m2pp {
 
@@ -27,6 +30,7 @@ class connection {
 	public:
 		connection(const std::string& sender_id_, const std::string& sub_addr_, const std::string& pub_addr_);
 		~connection();
+		int poll(struct pollfd *pollfds, size_t pollfdsNum);
 		request recv();
 		void reply(const request& req, const std::string& response);
 		void reply_http(const request& req, const std::string& response, uint16_t code = 200, const std::string& status = "OK", std::vector<header> hdrs = std::vector<header>());
