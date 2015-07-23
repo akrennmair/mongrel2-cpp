@@ -1,4 +1,3 @@
-#include <poll.h>
 #include <string>
 #include <sstream>
 #include <zmq.hpp>

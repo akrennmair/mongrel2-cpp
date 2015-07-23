@@ -6,9 +6,8 @@
 #include <utility>
 #include <zmq.hpp>
 #include <climits>
+#include <poll.h>
 #include <stdint.h>
-
-struct pollfd;
 
 namespace m2pp {
 
