@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <json/json.h>
+#include <json-c/json.h>
 #include "m2pp.hpp"
 #include "m2pp_internal.hpp"
 
